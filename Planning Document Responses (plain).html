@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planning Document Responses</title>
+
+<!-- Fonts actually used: Roboto (body/labels/buttons), Roboto Flex (display/section headers/wordmark), Inter (modal header) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@600&family=Roboto:wght@400;500;700&family=Roboto+Flex:wght@700&display=swap">
+<!-- Icons: Material Design Icons (only glyphs referenced below are used) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+
+<style>
+  /* ---- PrimeAdmin 3 tokens actually referenced by this design ---- */
+  :root {
+    --pa-primary:        rgb(25, 118, 210);
+    --pa-primary-600:    rgb( 0, 109, 199);
+    --pa-primary-700:    rgb( 17, 71, 161);
+    --pa-primary-050:    rgb(238, 245, 252);
+    --pa-aqua:           rgb( 72, 235, 247);
+
+    --pa-ink:            rgb( 33,  33,  33);
+    --pa-ink-2:          rgb( 66,  66,  66);
+    --pa-ink-3:          rgb(102, 102, 102);
+    --pa-ink-4:          rgb(113, 113, 113);
+    --pa-ink-5:          rgb(117, 117, 117);
+    --pa-ink-6:          rgb(137, 147, 158);
+    --pa-ink-7:          rgb(158, 158, 158);
+    --pa-line:           rgb(238, 238, 238);
+    --pa-line-2:         rgb(224, 224, 224);
+    --pa-sidebar-active: rgb( 62,  62,  62);
+    --pa-avatar-green:   rgb( 76, 175,  80);
+
+    --pa-success:        rgb( 46, 125,  50);
+    --pa-success-bg:     rgb(232, 245, 233);
+    --pa-warning:        rgb(233, 143,  40);
+    --pa-warning-bg:     rgb(255, 244, 229);
+
+    --pa-elev-modal: 0 9px 46px 8px rgba(0,0,0,0.12),
+                     0 24px 38px 3px rgba(0,0,0,0.14),
+                     0 11px 15px -7px rgba(0,0,0,0.20);
+
+    --pa-font-sans:    "Roboto", system-ui, sans-serif;
+    --pa-font-display: "Roboto Flex", "Roboto", system-ui, sans-serif;
+    --pa-font-modal:   "Inter", "Roboto", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #9aa0a6; font-family: var(--pa-font-sans); }
+
+  .pa-page-title {
+    font-family: var(--pa-font-sans);
+    font-size: 26px;
+    line-height: 34px;
+    letter-spacing: 1.3px;
+    color: var(--pa-primary);
+    text-transform: uppercase;
+  }
+
+  /* Chrome scrollbars for the scrolling panes */
+  .pdr-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+  .pdr-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 5px; }
+  .pdr-scroll::-webkit-scrollbar-track { background: transparent; }
+
+  /* State overlays (Material film model) */
+  .pdr-hover-ink:hover { background: rgba(33,33,33,0.04); }
+
+  button { font-family: inherit; }
+
+  /* ---- Answer chip (initials in a circle) ---- */
+  .chip {
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    font-family: var(--pa-font-sans);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+  .chip--yes     { background: var(--pa-success-bg); color: var(--pa-success); }
+  .chip--no      { background: #ECEDEF; color: #5F6368; }
+  .chip--pending { background: #fff; border: 1px dashed var(--pa-ink-7); color: var(--pa-ink-7); }
+  .chip__flag {
+    position: absolute; top: -1px; right: -1px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--pa-warning); border: 1.5px solid #fff; box-sizing: border-box;
+  }
+
+  /* ---- Answer pill (Yes / No / Not submitted) ---- */
+  .pill {
+    display: inline-flex; align-items: center;
+    padding: 4px 12px; border-radius: 16px;
+    font-family: var(--pa-font-sans);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; line-height: 1;
+  }
+  .pill--yes     { background: var(--pa-success-bg); color: var(--pa-success); }
+  .pill--no      { background: #ECEDEF; color: #5F6368; }
+  .pill--pending { background: #fff; border: 1px dashed var(--pa-ink-7); color: var(--pa-ink-7); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Data model — mirrors the contractor planning-form responses.
+   Swap this block for your real data source.
+   ============================================================ */
+var DATA = {
+  contractors: [
+    { name: 'Kristi Kay Orbaugh', creds: 'RN, MSN, RNP, AOCN', initials: 'KO' },
+    { name: 'Brad Bovette', creds: 'MBA, MPA, PA-C', initials: 'BB' },
+    { name: 'Rontgene M Solante', creds: 'MD, FPCP, FPSMID, FIDSA, FACP', initials: 'RS' },
+    { name: 'Sofia Miranda', creds: 'MSN, APRN, PNP-BC', initials: 'SM' },
+    { name: 'James Okafor', creds: 'MD, FACC', initials: 'JO' },
+    { name: 'Priya Nadeau', creds: 'PharmD, BCPS', initials: 'PN' },
+    { name: 'Daniel Reyes', creds: 'MD, MPH', initials: 'DR' },
+    { name: 'Helen Whitmore', creds: 'DNP, FNP-BC', initials: 'HW', pending: true }
+  ],
+  times: [
+    'Jan 14, 2026 at 9:12 AM', 'Jan 15, 2026 at 7:40 PM', 'Jan 12, 2026 at 4:05 PM',
+    'Jan 15, 2026 at 11:23 AM', 'Jan 13, 2026 at 2:48 PM', 'Jan 15, 2026 at 8:30 AM',
+    'Jan 11, 2026 at 5:17 PM', null
+  ],
+  answers: {
+    q1: ['yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'yes'],
+    q2: ['yes', 'no',  'yes', 'yes', 'yes', 'yes', 'yes'],
+    q3: ['yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'yes'],
+    q4: ['no',  'yes', 'no',  'no',  'no',  'no',  'no' ],
+    q5: ['yes', 'yes', 'yes', 'yes', 'no',  'yes', 'yes'],
+    q6: ['no',  'no',  'no',  'no',  'no',  'yes', 'no' ],
+    q7: ['yes', 'yes', 'yes', 'yes', 'yes', 'yes', 'yes'],
+    q8: ['no',  'no',  'no',  'no',  'no',  'no',  'no' ]
+  },
+  comments: {
+    '1-q2': 'Depth on pharmacokinetics may exceed what a general nursing audience needs — suggest adding a primer slide before the case discussion.',
+    '1-q4': 'A phase III readout published last month could shift the first-line recommendation. Worth a content review before the materials are finalized.',
+    '5-q6': 'Agenda time is tight; the cost-and-access barrier may only be partially addressed in the allotted segment.'
+  },
+  sections: [
+    { title: 'Educational Justification', questions: [
+      { id: 'q1', text: 'Do the learning objectives sufficiently address the activity goals?', expected: 'yes' },
+      { id: 'q2', text: 'Is the proposed content at a level appropriate for the intended audience?', expected: 'yes' },
+      { id: 'q3', text: 'Will the proposed educational intervention result in changes in current knowledge, attitude and/or practice of the participant/learner?', expected: 'yes' },
+      { id: 'q4', text: 'Are you aware of any new scientific developments that may require a change in the content in its proposed form?', expected: 'no' },
+      { id: 'q5', text: 'Is the educational format appropriate for the setting, objectives and desired results?', expected: 'yes' },
+      { id: 'q6', text: 'Are there identifiable barriers that are not addressed in the educational activity?', expected: 'no' }
+    ]},
+    { title: 'Potential for Bias', questions: [
+      { id: 'q7', text: 'Are planning components of this activity free from commercial bias and not promoting a particular proprietary interest?', expected: 'yes' },
+      { id: 'q8', text: 'Is it apparent, based on the planning components of this activity, what company supported this educational activity?', expected: 'no' }
+    ]}
+  ]
+};
+
+/* ============================================================
+   UI state
+   ============================================================ */
+var state = { view: 'list', count: 4, flaggedOnly: false, expanded: {}, selected: 0, showExpected: true };
+
+/* ---- helpers ---- */
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+function expectedLabel(q) { return 'Expected answer: ' + (q.expected === 'yes' ? 'Yes' : 'No'); }
+
+function getAns(ci, q) {
+  var c = DATA.contractors[ci];
+  if (c.pending) return { answer: null, comment: null, updated: null };
+  return { answer: DATA.answers[q.id][ci], comment: DATA.comments[ci + '-' + q.id] || null, updated: DATA.times[ci] };
+}
+
+/* ---- small render helpers ---- */
+function chip(text, kind, isFlag, title) {
+  return '<div class="chip chip--' + kind + '" title="' + esc(title || '') + '">' + esc(text) +
+    (isFlag ? '<span class="chip__flag"></span>' : '') + '</div>';
+}
+function pill(kind, label) {
+  return '<span class="pill pill--' + kind + '">' + esc(label) + '</span>';
+}
+function badge(bg, color, border, icon, text) {
+  return '<span style="display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:16px;background:' + bg +
+    ';color:' + color + ';' + (border ? 'border:' + border + ';' : '') + 'font-size:11.5px;font-weight:600;">' +
+    '<i class="mdi ' + icon + '" style="font-size:15px;"></i>' + esc(text) + '</span>';
+}
+
+/* ============================================================
+   View A — Review list
+   ============================================================ */
+function renderList(contractors) {
+  var html = '';
+  var anyVisible = false;
+
+  DATA.sections.forEach(function (sec) {
+    var rowsHtml = '';
+    sec.questions.forEach(function (q) {
+      var chipsHtml = '', responses = [], fc = 0, cc = 0;
+
+      contractors.forEach(function (c, ci) {
+        var r = getAns(ci, q);
+        var isPending = r.answer === null;
+        var isFlag = !isPending && r.answer !== q.expected;
+        var hasComment = !!r.comment;
+        if (isFlag) fc++;
+        if (hasComment) cc++;
+        var kind = isPending ? 'pending' : r.answer;
+        chipsHtml += chip(c.initials, kind, isFlag, c.name + ' — ' + (isPending ? 'Pending' : cap(r.answer)));
+        responses.push({
+          initials: c.initials, name: c.name, creds: c.creds, kind: kind,
+          label: isPending ? 'Not submitted' : cap(r.answer),
+          isFlag: isFlag, hasComment: hasComment, comment: r.comment, updated: r.updated || '—'
+        });
+      });
+
+      var hasSignal = fc > 0 || cc > 0;
+      if (state.flaggedOnly && !hasSignal) return;
+
+      var isExp = !!state.expanded[q.id];
+      var accentFlag = fc > 0;
+      var accentComment = cc > 0 && fc === 0;
+
+      var metaHtml = '';
+      if (fc > 0) metaHtml += badge('var(--pa-warning-bg)', 'var(--pa-warning)', '1px solid rgba(233,143,40,0.4)', 'mdi-alert-outline', fc + ' flagged');
+      if (cc > 0) metaHtml += '<span style="display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:16px;background:#f1f1f3;color:var(--pa-ink-2);font-size:11.5px;font-weight:600;"><i class="mdi mdi-comment-text-outline" style="font-size:14px;color:var(--pa-ink-3);"></i>' + cc + (cc === 1 ? ' comment' : ' comments') + '</span>';
+
+      var detailHtml = '';
+      if (isExp) {
+        var rHtml = '';
+        responses.forEach(function (r) {
+          var commentHtml = '';
+          if (r.hasComment) {
+            commentHtml = '<div style="display:flex;gap:9px;margin:9px 0 2px 43px;padding:11px 14px;background:#fff;border:1px solid var(--pa-line);border-left:3px solid var(--pa-ink-7);border-radius:4px;">' +
+              '<i class="mdi mdi-comment-text-outline" style="font-size:16px;color:var(--pa-ink-4);flex-shrink:0;margin-top:1px;"></i>' +
+              '<div style="font-size:13px;line-height:20px;color:var(--pa-ink-2);text-wrap:pretty;">' + esc(r.comment) + '</div></div>';
+          }
+          rHtml += '<div style="padding:13px 0;border-bottom:1px solid var(--pa-line);">' +
+            '<div style="display:flex;align-items:center;gap:13px;">' +
+              chip(r.initials, r.kind, r.isFlag, r.name) +
+              '<div style="min-width:230px;">' +
+                '<div style="font-size:13px;font-weight:500;color:var(--pa-ink);">' + esc(r.name) + '</div>' +
+                '<div style="font-size:11px;color:var(--pa-ink-4);">' + esc(r.creds) + '</div>' +
+              '</div>' +
+              pill(r.kind, r.label) +
+              (r.isFlag ? '<span style="display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:16px;background:var(--pa-warning-bg);color:var(--pa-warning);font-size:11px;font-weight:600;"><i class="mdi mdi-alert-outline" style="font-size:14px;"></i>Differs from expected</span>' : '') +
+              '<div style="flex:1;"></div>' +
+              '<div style="font-size:11.5px;color:var(--pa-ink-5);">Updated ' + esc(r.updated) + '</div>' +
+            '</div>' + commentHtml +
+          '</div>';
+        });
+        detailHtml = '<div style="background:#fafafa;border:1px solid var(--pa-line);border-radius:8px;padding:4px 18px;margin:0 0 16px;">' + rHtml + '</div>';
+      }
+
+      var accent = accentFlag
+        ? '<span style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pa-warning);"></span>'
+        : (accentComment ? '<span style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pa-ink-7);"></span>' : '');
+
+      rowsHtml +=
+        '<div style="position:relative;padding:0 28px;border-bottom:1px solid var(--pa-line);">' + accent +
+          '<div style="display:flex;align-items:center;gap:24px;padding:16px 0;">' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-size:14px;line-height:20px;color:var(--pa-ink);text-wrap:pretty;">' + esc(q.text) + '</div>' +
+              (state.showExpected ? '<div style="font-size:11px;letter-spacing:0.04em;color:var(--pa-ink-5);margin-top:5px;">' + expectedLabel(q) + '</div>' : '') +
+            '</div>' +
+            '<div style="width:296px;display:flex;flex-wrap:wrap;align-content:center;gap:6px;flex-shrink:0;">' + chipsHtml + '</div>' +
+            '<div style="width:232px;display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;flex-shrink:0;">' + metaHtml + '</div>' +
+            '<button data-action="toggle-row" data-id="' + q.id + '" style="width:36px;height:36px;flex-shrink:0;border-radius:50%;border:1px solid var(--pa-line-2);background:#fff;color:var(--pa-ink-3);display:flex;align-items:center;justify-content:center;cursor:pointer;">' +
+              '<i class="mdi ' + (isExp ? 'mdi-chevron-up' : 'mdi-chevron-down') + '" style="font-size:20px;"></i>' +
+            '</button>' +
+          '</div>' + detailHtml +
+        '</div>';
+    });
+
+    if (rowsHtml) {
+      anyVisible = true;
+      html += '<div style="background:#f3f4f6;padding:9px 28px;font-family:var(--pa-font-display);font-size:12.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--pa-ink-3);">' + esc(sec.title) + '</div>' + rowsHtml;
+    }
+  });
+
+  if (!anyVisible) {
+    html = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:90px 20px;text-align:center;">' +
+      '<i class="mdi mdi-check-decagram-outline" style="font-size:46px;color:var(--pa-success);"></i>' +
+      '<div style="font-size:15px;color:var(--pa-ink-2);max-width:420px;">No flagged answers or comments. Every response matches the expected answer.</div></div>';
+  }
+  return '<div>' + html + '</div>';
+}
+
+/* ============================================================
+   View B — By contractor
+   ============================================================ */
+function renderContractor(contractors) {
+  var sel = Math.min(state.selected, contractors.length - 1);
+  var selC = contractors[sel] || contractors[0];
+  var selPending = !!selC.pending;
+
+  var tabsHtml = '';
+  contractors.forEach(function (c, i) {
+    var active = i === sel;
+    var pendDot = c.pending ? '<span style="width:9px;height:9px;border-radius:50%;background:var(--pa-warning);flex-shrink:0;"></span>' : '';
+    var avatar = active
+      ? '<div style="width:36px;height:36px;flex-shrink:0;border-radius:50%;background:var(--pa-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;">' + esc(c.initials) + '</div>'
+      : '<div style="width:36px;height:36px;flex-shrink:0;border-radius:50%;background:var(--pa-primary-050);color:var(--pa-primary);display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;">' + esc(c.initials) + '</div>';
+    var wrapStyle = active
+      ? 'display:flex;align-items:center;gap:11px;padding:11px 12px;margin-bottom:4px;border-radius:6px;background:var(--pa-primary-050);box-shadow:inset 3px 0 0 var(--pa-primary);cursor:pointer;'
+      : 'display:flex;align-items:center;gap:11px;padding:11px 12px;margin-bottom:4px;border-radius:6px;background:transparent;cursor:pointer;';
+    tabsHtml += '<div class="' + (active ? '' : 'pdr-hover-ink') + '" data-action="select-contractor" data-i="' + i + '" style="' + wrapStyle + '">' +
+      avatar +
+      '<div style="min-width:0;flex:1;">' +
+        '<div style="font-size:13px;font-weight:500;color:var(--pa-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(c.name) + '</div>' +
+        '<div style="font-size:10.5px;color:var(--pa-ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(c.creds) + '</div>' +
+      '</div>' + pendDot +
+    '</div>';
+  });
+
+  var statusHtml = selPending
+    ? '<span style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:16px;background:var(--pa-warning-bg);color:var(--pa-warning);font-size:12px;font-weight:600;"><i class="mdi mdi-clock-outline" style="font-size:16px;"></i>Not yet submitted</span>'
+    : '<span style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:16px;background:var(--pa-success-bg);color:var(--pa-success);font-size:12px;font-weight:600;"><i class="mdi mdi-check-circle-outline" style="font-size:16px;"></i>Submitted ' + esc(DATA.times[DATA.contractors.indexOf(selC)] || '') + '</span>';
+
+  var bodyHtml;
+  if (selPending) {
+    bodyHtml = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:90px 20px;text-align:center;">' +
+      '<i class="mdi mdi-clock-outline" style="font-size:46px;color:var(--pa-warning);"></i>' +
+      '<div style="font-size:15px;color:var(--pa-ink-2);max-width:420px;">This contractor has not submitted their planning document responses yet.</div></div>';
+  } else {
+    bodyHtml = '';
+    DATA.sections.forEach(function (sec) {
+      var itemsHtml = '';
+      sec.questions.forEach(function (q) {
+        var r = getAns(sel, q);
+        var isFlag = r.answer !== q.expected;
+        var commentHtml = r.comment
+          ? '<div style="display:flex;gap:9px;margin-top:11px;padding:11px 14px;background:#fafafa;border:1px solid var(--pa-line);border-left:3px solid var(--pa-ink-7);border-radius:4px;">' +
+            '<i class="mdi mdi-comment-text-outline" style="font-size:16px;color:var(--pa-ink-4);flex-shrink:0;margin-top:1px;"></i>' +
+            '<div style="font-size:13px;line-height:20px;color:var(--pa-ink-2);text-wrap:pretty;">' + esc(r.comment) + '</div></div>'
+          : '';
+        itemsHtml += '<div style="padding:14px 0;border-bottom:1px solid var(--pa-line);">' +
+          '<div style="display:flex;align-items:flex-start;gap:24px;">' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-size:14px;line-height:20px;color:var(--pa-ink);text-wrap:pretty;">' + esc(q.text) + '</div>' +
+              (state.showExpected ? '<div style="font-size:11px;letter-spacing:0.04em;color:var(--pa-ink-5);margin-top:5px;">' + expectedLabel(q) + '</div>' : '') +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">' +
+              (isFlag ? '<span style="display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:16px;background:var(--pa-warning-bg);color:var(--pa-warning);font-size:11px;font-weight:600;"><i class="mdi mdi-alert-outline" style="font-size:14px;"></i>Differs from expected</span>' : '') +
+              pill(r.answer, cap(r.answer)) +
+            '</div>' +
+          '</div>' + commentHtml +
+        '</div>';
+      });
+      bodyHtml += '<div style="font-family:var(--pa-font-display);font-size:12.5px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--pa-ink-3);margin:22px 0 4px;">' + esc(sec.title) + '</div>' + itemsHtml;
+    });
+  }
+
+  return '<div style="display:flex;height:100%;">' +
+    '<div class="pdr-scroll" style="width:272px;border-right:1px solid var(--pa-line);overflow:auto;padding:12px;flex-shrink:0;background:#fcfcfd;">' + tabsHtml + '</div>' +
+    '<div class="pdr-scroll" style="flex:1;overflow:auto;padding:22px 28px;">' +
+      '<div style="display:flex;align-items:center;gap:14px;padding-bottom:18px;border-bottom:1px solid var(--pa-line);margin-bottom:6px;">' +
+        '<div style="width:50px;height:50px;flex-shrink:0;border-radius:50%;background:var(--pa-primary-050);color:var(--pa-primary);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;">' + esc(selC.initials) + '</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:17px;font-weight:500;color:var(--pa-ink);">' + esc(selC.name) + '</div>' +
+          '<div style="font-size:12.5px;color:var(--pa-ink-4);">' + esc(selC.creds) + '</div>' +
+        '</div>' + statusHtml +
+      '</div>' + bodyHtml +
+    '</div>' +
+  '</div>';
+}
+
+/* ============================================================
+   Toolbar + summary
+   ============================================================ */
+function renderToolbar(contractors) {
+  var submitted = 0, pending = 0;
+  contractors.forEach(function (c) { c.pending ? pending++ : submitted++; });
+
+  var fullFlags = 0, fullComments = 0;
+  DATA.sections.forEach(function (sec) { sec.questions.forEach(function (q) {
+    contractors.forEach(function (c, ci) {
+      var r = getAns(ci, q);
+      if (r.answer === null) return;
+      if (r.answer !== q.expected) fullFlags++;
+      if (r.comment) fullComments++;
+    });
+  }); });
+
+  var summary = '<div style="display:flex;align-items:center;gap:7px;padding:6px 13px;background:#f1f1f3;border-radius:16px;font-size:12.5px;color:var(--pa-ink-2);"><i class="mdi mdi-account-multiple-outline" style="font-size:17px;color:var(--pa-ink-3);"></i>' + submitted + ' of ' + contractors.length + ' submitted</div>';
+  if (pending > 0) summary += '<div style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:var(--pa-warning-bg);border:1px solid rgba(233,143,40,0.35);border-radius:16px;font-size:12.5px;font-weight:500;color:var(--pa-warning);"><i class="mdi mdi-clock-outline" style="font-size:16px;"></i>' + pending + ' not submitted</div>';
+  if (fullFlags > 0) summary += '<div style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:var(--pa-warning-bg);border:1px solid rgba(233,143,40,0.35);border-radius:16px;font-size:12.5px;font-weight:500;color:var(--pa-warning);"><i class="mdi mdi-alert-outline" style="font-size:16px;"></i>' + fullFlags + (fullFlags === 1 ? ' answer differs from expected' : ' answers differ from expected') + '</div>';
+  if (fullComments > 0) summary += '<div style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:#f1f1f3;border-radius:16px;font-size:12.5px;color:var(--pa-ink-2);"><i class="mdi mdi-comment-text-outline" style="font-size:15px;color:var(--pa-ink-3);"></i>' + fullComments + (fullComments === 1 ? ' comment' : ' comments') + '</div>';
+
+  var legend = '<div style="display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--pa-ink-4);">' +
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="width:13px;height:13px;border-radius:50%;background:var(--pa-success-bg);border:1px solid var(--pa-success);"></span>Yes</span>' +
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="width:13px;height:13px;border-radius:50%;background:#ECEDEF;border:1px solid #b9bcc1;"></span>No</span>' +
+    (state.showExpected ? '<span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:var(--pa-warning);"></span>Differs from expected</span>' : '') +
+  '</div>';
+
+  var listControls = '';
+  if (state.view === 'list') {
+    var visRowIds = [];
+    DATA.sections.forEach(function (sec) { sec.questions.forEach(function (q) {
+      var fc = 0, cc = 0;
+      contractors.forEach(function (c, ci) {
+        var r = getAns(ci, q);
+        if (r.answer === null) return;
+        if (r.answer !== q.expected) fc++;
+        if (r.comment) cc++;
+      });
+      if (state.flaggedOnly && !(fc > 0 || cc > 0)) return;
+      visRowIds.push(q.id);
+    }); });
+    var allExpanded = visRowIds.length > 0 && visRowIds.every(function (id) { return !!state.expanded[id]; });
+
+    listControls =
+      '<button data-action="toggle-all" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:18px;border:1px solid var(--pa-line-2);background:#fff;color:var(--pa-ink-2);font-size:12px;font-weight:600;cursor:pointer;">' +
+        '<i class="mdi ' + (allExpanded ? 'mdi-unfold-less-horizontal' : 'mdi-unfold-more-horizontal') + '" style="font-size:16px;"></i>' + (allExpanded ? 'Collapse all' : 'Expand all') +
+      '</button>' +
+      (state.flaggedOnly
+        ? '<button data-action="toggle-flagged" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:18px;border:1px solid var(--pa-primary);background:var(--pa-primary-050);color:var(--pa-primary);font-size:12px;font-weight:600;cursor:pointer;"><i class="mdi mdi-filter-variant" style="font-size:16px;"></i>Flagged &amp; comments only</button>'
+        : '<button data-action="toggle-flagged" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:18px;border:1px solid var(--pa-line-2);background:#fff;color:var(--pa-ink-2);font-size:12px;font-weight:600;cursor:pointer;"><i class="mdi mdi-filter-variant" style="font-size:16px;"></i>Flagged &amp; comments only</button>');
+  }
+
+  return '<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 28px;border-bottom:1px solid var(--pa-line);background:#fcfcfd;">' +
+    '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' + summary + '</div>' +
+    '<div style="display:flex;align-items:center;gap:18px;">' + legend + listControls + '</div>' +
+  '</div>';
+}
+
+/* ============================================================
+   View switcher (segmented) + top preview-scale control
+   ============================================================ */
+function segButton(active, action, dataAttr, dataVal, label, pad) {
+  var style = active
+    ? 'border:none;cursor:pointer;padding:' + pad + ';border-radius:6px;font-size:12px;font-weight:600;background:#fff;color:#1a1a1a;'
+    : 'border:none;cursor:pointer;padding:' + pad + ';border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:rgba(255,255,255,0.7);';
+  return '<button data-action="' + action + '" ' + dataAttr + '="' + dataVal + '" style="' + style + '">' + esc(label) + '</button>';
+}
+
+function renderPreviewControl() {
+  var counts = [2, 4, 8].map(function (n) {
+    return segButton(state.count === n, 'set-count', 'data-n', n, String(n), '7px 14px');
+  }).join('');
+  return '<div style="position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:12px;background:rgba(18,18,18,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:9px 16px;box-shadow:0 10px 30px rgba(0,0,0,0.45);">' +
+    '<span style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--pa-aqua);font-weight:700;">Preview at scale</span>' +
+    '<span style="font-size:11px;color:rgba(255,255,255,0.5);">Contractors on this project</span>' +
+    '<div style="display:flex;background:rgba(255,255,255,0.08);border-radius:8px;padding:3px;gap:2px;">' + counts + '</div>' +
+  '</div>';
+}
+
+/* ============================================================
+   App chrome + assembly
+   ============================================================ */
+function renderApp() {
+  var contractors = DATA.contractors.slice(0, state.count);
+
+  var body;
+  if (state.view === 'list') body = renderList(contractors);
+  else if (state.view === 'contractor') body = renderContractor(contractors);
+  else body = renderGrid(contractors);
+
+  var backdrop =
+    '<div style="position:absolute;left:0;top:0;width:215px;height:100%;background:#202020;color:#fff;">' +
+      '<div style="display:flex;align-items:center;gap:8px;padding:19px 20px 17px;font-family:var(--pa-font-display);font-weight:700;font-size:19px;letter-spacing:1px;">' +
+        '<span style="color:#fff;">PRIME</span><span style="color:var(--pa-aqua);">ADMIN</span>' +
+        '<i class="mdi mdi-chevron-left" style="margin-left:auto;font-size:20px;color:rgba(255,255,255,0.6);"></i>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--pa-sidebar-active);color:#fff;font-size:13px;"><i class="mdi mdi-view-grid-outline" style="font-size:19px;"></i><span>Program Management</span><i class="mdi mdi-chevron-up" style="margin-left:auto;font-size:18px;"></i></div>' +
+      '<div style="padding:10px 20px 10px 52px;font-size:13px;color:#fff;background:rgba(255,255,255,0.06);">Projects</div>' +
+      '<div style="display:flex;align-items:center;gap:12px;padding:14px 20px;font-size:13px;color:rgba(255,255,255,0.78);"><i class="mdi mdi-chart-line" style="font-size:19px;"></i>Reporting</div>' +
+      '<div style="display:flex;align-items:center;gap:12px;padding:14px 20px;font-size:13px;color:rgba(255,255,255,0.78);"><i class="mdi mdi-bullhorn-outline" style="font-size:19px;"></i>Marketing</div>' +
+      '<div style="display:flex;align-items:center;gap:12px;padding:14px 20px;font-size:13px;color:rgba(255,255,255,0.78);"><i class="mdi mdi-account-multiple-outline" style="font-size:19px;"></i>Faculty</div>' +
+    '</div>' +
+    '<div style="position:absolute;left:215px;top:0;right:0;height:64px;background:#fff;border-bottom:1px solid var(--pa-line);display:flex;align-items:center;gap:18px;padding:0 24px;">' +
+      '<div style="flex:1;max-width:840px;height:40px;display:flex;align-items:center;gap:10px;padding:0 16px;background:#f3f3f5;border:1px solid var(--pa-line);border-radius:4px;color:var(--pa-ink-6);font-size:14px;">Search for [Project]<i class="mdi mdi-magnify" style="margin-left:auto;font-size:20px;"></i></div>' +
+      '<i class="mdi mdi-bell-outline" style="font-size:22px;color:var(--pa-ink-2);margin-left:auto;"></i>' +
+      '<div style="width:38px;height:38px;border-radius:50%;background:var(--pa-avatar-green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;">DB</div>' +
+    '</div>' +
+    '<div style="position:absolute;left:215px;top:64px;right:0;display:flex;flex-direction:column;">' +
+      '<div style="padding:18px 32px 14px;display:flex;align-items:center;justify-content:space-between;background:#fff;"><div class="pa-page-title">PROJECTS</div><div style="background:var(--pa-primary);color:#fff;padding:8px 22px;border-radius:16px;font-size:12px;font-weight:500;letter-spacing:0.05em;">EDIT</div></div>' +
+      '<div style="display:flex;background:var(--pa-primary-600);color:#fff;font-size:12px;font-weight:500;letter-spacing:0.06em;">' +
+        '<div style="flex:1;text-align:center;padding:15px 0;">OVERVIEW</div><div style="flex:1;text-align:center;padding:15px 0;">DETAILS</div><div style="flex:1;text-align:center;padding:15px 0;">PLANNING</div><div style="flex:1;text-align:center;padding:15px 0;background:var(--pa-primary-700);">FACULTY</div><div style="flex:1;text-align:center;padding:15px 0;">FILES</div><div style="flex:1;text-align:center;padding:15px 0;">ACTIVITIES</div><div style="flex:1;text-align:center;padding:15px 0;">WORKFLOW</div>' +
+      '</div>' +
+    '</div>';
+
+  var viewTabs = [['list', 'Review list'], ['contractor', 'By faculty']].map(function (v) {
+    return segButton(state.view === v[0], 'set-view', 'data-view', v[0], v[1], '7px 16px');
+  }).join('');
+
+  var modal =
+    '<div style="position:absolute;top:96px;left:50%;transform:translateX(-50%);width:1560px;height:924px;background:#fff;border-radius:8px;box-shadow:var(--pa-elev-modal);z-index:10;display:flex;flex-direction:column;overflow:hidden;">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:22px 28px 16px;border-bottom:1px solid var(--pa-line);">' +
+        '<div>' +
+          '<div style="font-family:var(--pa-font-modal);font-size:20px;font-weight:600;color:var(--pa-ink);">Planning Document Responses</div>' +
+          '<div style="font-size:13px;color:var(--pa-ink-4);margin-top:5px;">Advances in Pulmonary Hypertension &nbsp;·&nbsp; Project #4821</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:16px;">' +
+          '<div style="display:flex;background:#f1f1f3;border-radius:8px;padding:3px;gap:2px;">' + viewTabs.replace(/rgba\(255,255,255,0\.7\)/g, 'var(--pa-ink-3)') + '</div>' +
+          '<div class="pdr-hover-ink" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--pa-ink-3);cursor:pointer;"><i class="mdi mdi-close" style="font-size:22px;"></i></div>' +
+        '</div>' +
+      '</div>' +
+      renderToolbar(contractors) +
+      '<div class="pdr-scroll" style="flex:1;overflow:auto;">' + body + '</div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-top:1px solid var(--pa-line);background:#fcfcfd;">' +
+        '<div style="font-size:11.5px;color:var(--pa-ink-5);">Read-only · Responses captured from the planning survey</div>' +
+        '<button style="padding:9px 24px;border-radius:18px;border:1px solid var(--pa-line-2);background:#fff;color:var(--pa-ink-2);font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;">Close</button>' +
+      '</div>' +
+    '</div>';
+
+  return '<div style="width:100%;overflow:hidden;background:#fafafa;">' +
+    backdrop +
+    '<div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);z-index:5;"></div>' +
+    renderPreviewControl() +
+    modal +
+  '</div>';
+}
+
+/* ============================================================
+   Mount + event delegation
+   ============================================================ */
+var root = document.getElementById('app');
+
+function paint() { root.innerHTML = renderApp(); }
+
+root.addEventListener('click', function (e) {
+  var el = e.target.closest('[data-action]');
+  if (!el) return;
+  var action = el.getAttribute('data-action');
+
+  if (action === 'set-count') {
+    state.count = parseInt(el.getAttribute('data-n'), 10);
+    state.selected = 0;
+    state.expanded = {};
+  } else if (action === 'set-view') {
+    state.view = el.getAttribute('data-view');
+  } else if (action === 'toggle-flagged') {
+    state.flaggedOnly = !state.flaggedOnly;
+  } else if (action === 'toggle-row') {
+    var id = el.getAttribute('data-id');
+    state.expanded[id] = !state.expanded[id];
+  } else if (action === 'toggle-all') {
+    var contractors = DATA.contractors.slice(0, state.count);
+    var ids = [];
+    DATA.sections.forEach(function (sec) { sec.questions.forEach(function (q) {
+      var fc = 0, cc = 0;
+      contractors.forEach(function (c, ci) {
+        var r = getAns(ci, q);
+        if (r.answer === null) return;
+        if (r.answer !== q.expected) fc++;
+        if (r.comment) cc++;
+      });
+      if (state.flaggedOnly && !(fc > 0 || cc > 0)) return;
+      ids.push(q.id);
+    }); });
+    var allExp = ids.length > 0 && ids.every(function (i) { return !!state.expanded[i]; });
+    var next = {};
+    ids.forEach(function (i) { next[i] = !allExp; });
+    state.expanded = next;
+  } else if (action === 'select-contractor') {
+    state.selected = parseInt(el.getAttribute('data-i'), 10);
+  }
+  paint();
+});
+
+paint();
+</script>
+</body>
+</html>
