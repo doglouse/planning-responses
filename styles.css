@@ -273,7 +273,7 @@ html, body { height: 100%; }
 .pdr-ctab-txt { min-width: 0; flex: 1; }
 .pdr-ctab-name { font-size: 13px; font-weight: 500; color: var(--pa-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pdr-ctab-creds { font-size: 10.5px; color: var(--pa-ink-4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pdr-ctab-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--pa-warning); flex-shrink: 0; }
+.pdr-ctab-flag { display: inline-flex; align-items: center; justify-content: center; color: var(--pa-ink-6); flex-shrink: 0; }
 
 .pdr-av { width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--pa-font-display); font-size: 12.5px; font-weight: 700; background: var(--pa-primary-050); color: var(--pa-primary); }
 .pdr-av--on { background: var(--pa-primary); color: #fff; }

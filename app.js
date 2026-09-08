@@ -17,7 +17,7 @@ const CONTRACTORS = [
   { name: 'Kristi Kay Orbaugh', creds: 'RN, MSN, RNP, AOCN', initials: 'KO' },
   { name: 'Brad Bovette', creds: 'MBA, MPA, PA-C', initials: 'BB' },
   { name: 'Rontgene M Solante', creds: 'MD, FPCP, FPSMID, FIDSA, FACP', initials: 'RS' },
-  { name: 'Sofia Miranda', creds: 'MSN, APRN, PNP-BC', initials: 'SM' },
+  { name: 'Sofia Miranda', creds: 'MSN, APRN, PNP-BC', initials: 'SM', pending: true },
   { name: 'James Okafor', creds: 'MD, FACC', initials: 'JO' },
   { name: 'Priya Nadeau', creds: 'PharmD, BCPS', initials: 'PN' },
   { name: 'Daniel Reyes', creds: 'MD, MPH', initials: 'DR' },
@@ -302,7 +302,7 @@ function facultyView(cs) {
         <div class="pdr-ctab-name">${esc(c.name)}</div>
         <div class="pdr-ctab-creds">${esc(c.creds)}</div>
       </div>
-      ${c.pending ? '<span class="pdr-ctab-dot"></span>' : ''}
+      ${c.pending ? `<span class="pdr-ctab-flag" title="Not yet submitted">${icon('clock-outline', 16)}</span>` : ''}
     </button>`).join('');
 
   const detail = selPending
